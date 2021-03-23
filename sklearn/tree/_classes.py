@@ -102,7 +102,8 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
                  min_impurity_decrease,
                  min_impurity_split,
                  class_weight=None,
-                 ccp_alpha=0.0):
+                 ccp_alpha=0.0,
+                 correlated_feature_selection="random"):
         self.criterion = criterion
         self.splitter = splitter
         self.max_depth = max_depth
@@ -116,6 +117,7 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
         self.min_impurity_split = min_impurity_split
         self.class_weight = class_weight
         self.ccp_alpha = ccp_alpha
+        self.correlated_feature_selection = correlated_feature_selection
 
     def get_depth(self):
         """Return the depth of the decision tree.
@@ -343,6 +345,10 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
                 FutureWarning
             )
 
+        if self.correlated_feature_selection not in ('random', 'order'):
+            raise ValueError("Invalid value for correlated_feature_selection. "
+                             "Allowed string values are 'random' or 'order' ")
+
         # Build tree
         criterion = self.criterion
         if not isinstance(criterion, Criterion):
@@ -369,10 +375,12 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
 
         splitter = self.splitter
         if not isinstance(self.splitter, Splitter):
+            random_selection = (self.correlated_feature_selection == 'random')
             splitter = SPLITTERS[self.splitter](criterion,
                                                 self.max_features_,
                                                 min_samples_leaf,
                                                 min_weight_leaf,
+                                                random_selection,
                                                 random_state)
 
         if is_classifier(self):
@@ -762,6 +770,12 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
 
         .. versionadded:: 0.22
 
+    correlated_feature_selection: {"random", "order"}, default="random"
+        Te Strategy used to choose the split when multiple features have same
+        order (correlation = 1). Supported strategies are "random" to choose
+        the split feature at random and "order" to choose the feature with
+        lowest index.
+
     Attributes
     ----------
     classes_ : ndarray of shape (n_classes,) or list of ndarray
@@ -857,7 +871,8 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
                  min_impurity_decrease=0.,
                  min_impurity_split=None,
                  class_weight=None,
-                 ccp_alpha=0.0):
+                 ccp_alpha=0.0,
+                 correlated_feature_selection="random"):
         super().__init__(
             criterion=criterion,
             splitter=splitter,
@@ -871,7 +886,8 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
             random_state=random_state,
             min_impurity_decrease=min_impurity_decrease,
             min_impurity_split=min_impurity_split,
-            ccp_alpha=ccp_alpha)
+            ccp_alpha=ccp_alpha,
+            correlated_feature_selection=correlated_feature_selection)
 
     def fit(self, X, y, sample_weight=None, check_input=True,
             X_idx_sorted="deprecated"):
@@ -1133,6 +1149,12 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
 
         .. versionadded:: 0.22
 
+    correlated_feature_selection: {"random", "order"}, default="random"
+        Te Strategy used to choose the split when multiple features have same
+        order (correlation = 1). Supported strategies are "random" to choose
+        the split feature at random and "order" to choose the feature with
+        lowest index.
+
     Attributes
     ----------
     feature_importances_ : ndarray of shape (n_features,)
@@ -1213,7 +1235,8 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
                  max_leaf_nodes=None,
                  min_impurity_decrease=0.,
                  min_impurity_split=None,
-                 ccp_alpha=0.0):
+                 ccp_alpha=0.0,
+                 correlated_feature_selection="random"):
         super().__init__(
             criterion=criterion,
             splitter=splitter,
@@ -1226,7 +1249,8 @@ class DecisionTreeRegressor(RegressorMixin, BaseDecisionTree):
             random_state=random_state,
             min_impurity_decrease=min_impurity_decrease,
             min_impurity_split=min_impurity_split,
-            ccp_alpha=ccp_alpha)
+            ccp_alpha=ccp_alpha,
+            correlated_feature_selection=correlated_feature_selection)
 
     def fit(self, X, y, sample_weight=None, check_input=True,
             X_idx_sorted="deprecated"):

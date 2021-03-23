@@ -1163,6 +1163,12 @@ class RandomForestClassifier(ForestClassifier):
 
         .. versionadded:: 0.22
 
+    correlated_feature_selection: {"random", "order"}, default="random"
+        Te Strategy used to choose the split when multiple features have same
+        order (correlation = 1). Supported strategies are "random" to choose
+        the split feature at random and "order" to choose the feature with
+        lowest index.
+
     Attributes
     ----------
     base_estimator_ : DecisionTreeClassifier
@@ -1269,7 +1275,8 @@ class RandomForestClassifier(ForestClassifier):
                  warm_start=False,
                  class_weight=None,
                  ccp_alpha=0.0,
-                 max_samples=None):
+                 max_samples=None,
+                 correlated_feature_selection="random"):
         super().__init__(
             base_estimator=DecisionTreeClassifier(),
             n_estimators=n_estimators,
@@ -1277,7 +1284,8 @@ class RandomForestClassifier(ForestClassifier):
                               "min_samples_leaf", "min_weight_fraction_leaf",
                               "max_features", "max_leaf_nodes",
                               "min_impurity_decrease", "min_impurity_split",
-                              "random_state", "ccp_alpha"),
+                              "random_state", "ccp_alpha",
+                              "correlated_feature_selection"),
             bootstrap=bootstrap,
             oob_score=oob_score,
             n_jobs=n_jobs,
@@ -1297,6 +1305,7 @@ class RandomForestClassifier(ForestClassifier):
         self.min_impurity_decrease = min_impurity_decrease
         self.min_impurity_split = min_impurity_split
         self.ccp_alpha = ccp_alpha
+        self.correlated_feature_selection = correlated_feature_selection
 
 
 class RandomForestRegressor(ForestRegressor):
@@ -1469,6 +1478,12 @@ class RandomForestRegressor(ForestRegressor):
 
         .. versionadded:: 0.22
 
+    correlated_feature_selection: {"random", "order"}, default="random"
+        Te Strategy used to choose the split when multiple features have same
+        order (correlation = 1). Supported strategies are "random" to choose
+        the split feature at random and "order" to choose the feature with
+        lowest index.
+
     Attributes
     ----------
     base_estimator_ : DecisionTreeRegressor
@@ -1568,7 +1583,8 @@ class RandomForestRegressor(ForestRegressor):
                  verbose=0,
                  warm_start=False,
                  ccp_alpha=0.0,
-                 max_samples=None):
+                 max_samples=None,
+                 correlated_feature_selection="random"):
         super().__init__(
             base_estimator=DecisionTreeRegressor(),
             n_estimators=n_estimators,
@@ -1576,7 +1592,8 @@ class RandomForestRegressor(ForestRegressor):
                               "min_samples_leaf", "min_weight_fraction_leaf",
                               "max_features", "max_leaf_nodes",
                               "min_impurity_decrease", "min_impurity_split",
-                              "random_state", "ccp_alpha"),
+                              "random_state", "ccp_alpha",
+                              "correlated_feature_selection"),
             bootstrap=bootstrap,
             oob_score=oob_score,
             n_jobs=n_jobs,
@@ -1595,6 +1612,7 @@ class RandomForestRegressor(ForestRegressor):
         self.min_impurity_decrease = min_impurity_decrease
         self.min_impurity_split = min_impurity_split
         self.ccp_alpha = ccp_alpha
+        self.correlated_feature_selection = correlated_feature_selection
 
 
 class ExtraTreesClassifier(ForestClassifier):

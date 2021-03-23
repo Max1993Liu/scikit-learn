@@ -60,7 +60,7 @@ cdef class Splitter:
 
     def __cinit__(self, Criterion criterion, SIZE_t max_features,
                   SIZE_t min_samples_leaf, double min_weight_leaf,
-                  object random_state):
+                  bint random_selection, object random_state):
         """
         Parameters
         ----------
@@ -80,6 +80,10 @@ cdef class Splitter:
             The minimal weight each leaf can have, where the weight is the sum
             of the weights of each sample in it.
 
+        random_selction : bint
+            When multiple features share the same improvement, whether to choose
+            the split feature at random or pick the one with the lowest index.
+
         random_state : object
             The user inputted random state to be used for pseudo-randomness
         """
@@ -97,6 +101,7 @@ cdef class Splitter:
         self.max_features = max_features
         self.min_samples_leaf = min_samples_leaf
         self.min_weight_leaf = min_weight_leaf
+        self.random_selection = random_selection
         self.random_state = random_state
 
     def __dealloc__(self):
@@ -285,6 +290,7 @@ cdef class BestSplitter(BaseDenseSplitter):
         cdef SIZE_t min_samples_leaf = self.min_samples_leaf
         cdef double min_weight_leaf = self.min_weight_leaf
         cdef UINT32_t* random_state = &self.rand_r_state
+        cdef bint random_selection = self.random_selection
 
         cdef SplitRecord best, current
         cdef double current_proxy_improvement = -INFINITY
@@ -407,7 +413,9 @@ cdef class BestSplitter(BaseDenseSplitter):
                             current_proxy_improvement = self.criterion.proxy_impurity_improvement()
 
                             if current_proxy_improvement > best_proxy_improvement or \
-                                    (current_proxy_improvement == best_proxy_improvement and current.feature < best.feature):
+                                    (random_selection is False and \
+                                        current_proxy_improvement == best_proxy_improvement and \
+                                        current.feature < best.feature):
                                 best_proxy_improvement = current_proxy_improvement
                                 # sum of halves is used to avoid infinite value
                                 current.threshold = Xf[p - 1] / 2.0 + Xf[p] / 2.0
@@ -781,7 +789,7 @@ cdef class BaseSparseSplitter(Splitter):
 
     def __cinit__(self, Criterion criterion, SIZE_t max_features,
                   SIZE_t min_samples_leaf, double min_weight_leaf,
-                  object random_state):
+                  bint random_selection, object random_state):
         # Parent __cinit__ is automatically called
 
         self.X_data = NULL
@@ -1124,6 +1132,7 @@ cdef class BestSparseSplitter(BaseSparseSplitter):
         cdef SIZE_t min_samples_leaf = self.min_samples_leaf
         cdef double min_weight_leaf = self.min_weight_leaf
         cdef UINT32_t* random_state = &self.rand_r_state
+        cdef bint random_selection = self.random_selection
 
         cdef SplitRecord best, current
         _init_split(&best, end)
@@ -1275,7 +1284,9 @@ cdef class BestSparseSplitter(BaseSparseSplitter):
                             current_proxy_improvement = self.criterion.proxy_impurity_improvement()
 
                             if current_proxy_improvement > best_proxy_improvement or \
-                                    (current_proxy_improvement == best_proxy_improvement and current.feature < best.feature):
+                                (random_selection is False and \
+                                    current_proxy_improvement == best_proxy_improvement and \
+                                    current.feature < best.feature):
                                 best_proxy_improvement = current_proxy_improvement
                                 # sum of halves used to avoid infinite values
                                 current.threshold = Xf[p_prev] / 2.0 + Xf[p] / 2.0

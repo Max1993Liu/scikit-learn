@@ -140,9 +140,8 @@ class BaseGradientBoosting(BaseEnsemble, metaclass=ABCMeta):
                  max_depth, min_impurity_decrease, min_impurity_split,
                  init, subsample, max_features, ccp_alpha,
                  random_state, alpha=0.9, verbose=0, max_leaf_nodes=None,
-                 warm_start=False, validation_fraction=0.1,
-                 n_iter_no_change=None, tol=1e-4):
-
+                 correlated_feature_selection="random", warm_start=False,
+                 validation_fraction=0.1, n_iter_no_change=None, tol=1e-4):
         self.n_estimators = n_estimators
         self.learning_rate = learning_rate
         self.loss = loss
@@ -161,6 +160,7 @@ class BaseGradientBoosting(BaseEnsemble, metaclass=ABCMeta):
         self.alpha = alpha
         self.verbose = verbose
         self.max_leaf_nodes = max_leaf_nodes
+        self.correlated_feature_selection = correlated_feature_selection
         self.warm_start = warm_start
         self.validation_fraction = validation_fraction
         self.n_iter_no_change = n_iter_no_change
@@ -204,7 +204,8 @@ class BaseGradientBoosting(BaseEnsemble, metaclass=ABCMeta):
                 max_features=self.max_features,
                 max_leaf_nodes=self.max_leaf_nodes,
                 random_state=random_state,
-                ccp_alpha=self.ccp_alpha)
+                ccp_alpha=self.ccp_alpha,
+                correlated_feature_selection=self.correlated_feature_selection)
 
             if self.subsample < 1.0:
                 # no inplace multiplication!
@@ -993,6 +994,12 @@ class GradientBoostingClassifier(ClassifierMixin, BaseGradientBoosting):
 
         .. versionadded:: 0.22
 
+    correlated_feature_selection: {"random", "order"}, default="random"
+        Te Strategy used to choose the split when multiple features have same
+        order (correlation = 1). Supported strategies are "random" to choose
+        the split feature at random and "order" to choose the feature with
+        lowest index.
+
     Attributes
     ----------
     n_estimators_ : int
@@ -1115,7 +1122,7 @@ class GradientBoostingClassifier(ClassifierMixin, BaseGradientBoosting):
                  random_state=None, max_features=None, verbose=0,
                  max_leaf_nodes=None, warm_start=False,
                  validation_fraction=0.1, n_iter_no_change=None, tol=1e-4,
-                 ccp_alpha=0.0):
+                 ccp_alpha=0.0, correlated_feature_selection="random"):
 
         super().__init__(
             loss=loss, learning_rate=learning_rate, n_estimators=n_estimators,
@@ -1129,7 +1136,8 @@ class GradientBoostingClassifier(ClassifierMixin, BaseGradientBoosting):
             min_impurity_decrease=min_impurity_decrease,
             min_impurity_split=min_impurity_split,
             warm_start=warm_start, validation_fraction=validation_fraction,
-            n_iter_no_change=n_iter_no_change, tol=tol, ccp_alpha=ccp_alpha)
+            n_iter_no_change=n_iter_no_change, tol=tol, ccp_alpha=ccp_alpha,
+            correlated_feature_selection=correlated_feature_selection)
 
     def _validate_y(self, y, sample_weight):
         check_classification_targets(y)
@@ -1543,6 +1551,12 @@ class GradientBoostingRegressor(RegressorMixin, BaseGradientBoosting):
 
         .. versionadded:: 0.22
 
+    correlated_feature_selection: {"random", "order"}, default="random"
+        Te Strategy used to choose the split when multiple features have same
+        order (correlation = 1). Supported strategies are "random" to choose
+        the split feature at random and "order" to choose the feature with
+        lowest index.
+
     Attributes
     ----------
     feature_importances_ : ndarray of shape (n_features,)
@@ -1655,8 +1669,8 @@ class GradientBoostingRegressor(RegressorMixin, BaseGradientBoosting):
                  min_impurity_split=None, init=None, random_state=None,
                  max_features=None, alpha=0.9, verbose=0, max_leaf_nodes=None,
                  warm_start=False, validation_fraction=0.1,
-                 n_iter_no_change=None, tol=1e-4, ccp_alpha=0.0):
-
+                 n_iter_no_change=None, tol=1e-4, ccp_alpha=0.0,
+                 correlated_feature_selection="random"):
         super().__init__(
             loss=loss, learning_rate=learning_rate, n_estimators=n_estimators,
             criterion=criterion, min_samples_split=min_samples_split,
@@ -1669,7 +1683,8 @@ class GradientBoostingRegressor(RegressorMixin, BaseGradientBoosting):
             random_state=random_state, alpha=alpha, verbose=verbose,
             max_leaf_nodes=max_leaf_nodes, warm_start=warm_start,
             validation_fraction=validation_fraction,
-            n_iter_no_change=n_iter_no_change, tol=tol, ccp_alpha=ccp_alpha)
+            n_iter_no_change=n_iter_no_change, tol=tol, ccp_alpha=ccp_alpha,
+            correlated_feature_selection=correlated_feature_selection)
 
     def _validate_y(self, y, sample_weight=None):
         if y.dtype.kind == 'O':

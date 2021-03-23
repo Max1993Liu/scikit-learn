@@ -994,7 +994,7 @@ class GradientBoostingClassifier(ClassifierMixin, BaseGradientBoosting):
 
         .. versionadded:: 0.22
 
-    correlated_feature_selection: {"random", "order"}, default="random"
+    correlated_feature_selection : {"random", "order"}, default="random"
         Te Strategy used to choose the split when multiple features have same
         order (correlation = 1). Supported strategies are "random" to choose
         the split feature at random and "order" to choose the feature with
@@ -1551,7 +1551,7 @@ class GradientBoostingRegressor(RegressorMixin, BaseGradientBoosting):
 
         .. versionadded:: 0.22
 
-    correlated_feature_selection: {"random", "order"}, default="random"
+    correlated_feature_selection : {"random", "order"}, default="random"
         Te Strategy used to choose the split when multiple features have same
         order (correlation = 1). Supported strategies are "random" to choose
         the split feature at random and "order" to choose the feature with
